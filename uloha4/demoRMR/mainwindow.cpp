@@ -146,7 +146,7 @@ int MainWindow::processThisRobot(TKobukiData robotdata)
         temp_distance = copyOfLaserData.Data[k].scanDistance/1000;
         //std::printf("%f - distance \n", temp_distance);
          //std::printf("%d - distance \n", stuck);
-        if (stuck == false && temp_distance <= 0.25 && temp_distance >= 0.01){
+        if (stuck == false && temp_distance <= 0.18 && temp_distance >= 0.01){
             robot.setTranslationSpeed(0);
             bump_count += 1;
 
