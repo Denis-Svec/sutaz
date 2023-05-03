@@ -77,28 +77,6 @@ void MainWindow::paintEvent(QPaintEvent *event)
             for(int k=0;k<copyOfLaserData.numberOfScans/*360*/;k++)
             {
 
-                temp_distance = copyOfLaserData.Data[k].scanDistance/1000;
-                if (stuck == false && temp_distance <= 0.18 && temp_distance >= 0.01){
-
-                    bump_count += 1;
-
-                    if(k <=70 || k >=205){
-                        //predok
-                        Front_back_det = -1;
-                    }else{
-                        Front_back_det = 1;
-                    }
-
-                    last_movex= x;
-                    last_movey= y;
-                    stuck = true;
-                    step_one = true;
-
-
-    //                step_two = false;
-                    std::printf("STUCK\n");
-                   // std::printf("%f - %d \n", (copyOfLaserData.Data[k].scanDistance/scale), k);
-                }
 
                 int dist=copyOfLaserData.Data[k].scanDistance/20; ///vzdialenost nahodne predelena 20 aby to nejako vyzeralo v okne.. zmen podla uvazenia
                 int xp=rect.width()-(rect.width()/2+dist*2*sin((360.0-copyOfLaserData.Data[k].scanAngle)*3.14159/180.0))+rect.topLeft().x(); //prepocet do obrazovky
@@ -154,17 +132,55 @@ int MainWindow::processThisRobot(TKobukiData robotdata)
     double pi1 = 3.14159265359;
     double finish = 0.025;
     static bool test1 = true;
-
+    static bool stuck = false;
+    static bool step_one = false;
+    static bool after = false;
     /*if(test1){
         qyr.push(0);qxr.push(2);
         test1 = false;
     }*/
+
+    for(int k=0;k<copyOfLaserData.numberOfScans/*360*/;k++)
+    {
+
+        temp_distance = copyOfLaserData.Data[k].scanDistance/1000;
+        //std::printf("%f - distance \n", temp_distance);
+         //std::printf("%d - distance \n", stuck);
+        if (stuck == false && temp_distance <= 0.25 && temp_distance >= 0.01){
+            robot.setTranslationSpeed(0);
+            bump_count += 1;
+
+            if(k <=70 || k >=205){
+                //predok
+                Front_back_det = -1;
+            }else{
+                Front_back_det = 1;
+            }
+
+            last_movex= x;
+            last_movey= y;
+            stuck = true;
+            step_one = true;
+
+
+//                step_two = false;
+            //std::printf("STUCK-----------------------\n");
+            //std::printf("%f - %d \n", (copyOfLaserData.Data[k].scanDistance/1000), k);
+        }
+
+    }
+
 distance_travelled = abs(calculate_Distance(last_movex,last_movey,x,y));
 
-   if(stuck){
+if(after && distance_travelled >= 0.2){
+    after = false;
+}
 
-       if(distance_travelled >= 0.1 ){
-   //        std::printf("stuck 3\n");
+if(stuck){
+
+
+       if(distance_travelled >= 0.2){
+           std::printf("stuck 3\n");
            robot.setTranslationSpeed(0);
            robot.setRotationSpeed(1);
            std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -176,18 +192,19 @@ distance_travelled = abs(calculate_Distance(last_movex,last_movey,x,y));
 
            step_one = false;
            stuck = false;
+           after = true;
            //v
            robot.setTranslationSpeed(100);
 
        }else if(step_one){
-           robot.setTranslationSpeed(0);
+
            //robot.setTranslationSpeed(Front_back_det*speed);
 
            robot.setTranslationSpeed(100*Front_back_det);
-   //        std::printf("stuck 1\n");
+           std::printf("stuck 1\n");
        }
 
-   }else if(test1){
+   }else if(test1 && after == false){
         printf("IDEM0\n");
         int algMapa[300][300] = {0};
 
@@ -479,7 +496,7 @@ distance_travelled = abs(calculate_Distance(last_movex,last_movey,x,y));
 
 
         ///POLOHOVANIE
-        if(!mojRobot.stop/* && !mapovanie*/){
+        if(!mojRobot.stop/* && !mapovanie*/ && stuck == false && after == false){
            /// cout << "POLOHOVANIE" << endl;
 
             if(!qyr.empty()){
@@ -563,12 +580,13 @@ distance_travelled = abs(calculate_Distance(last_movex,last_movey,x,y));
                 }
                 if(abs(e_fi) < 0.03) centered = true;
             }
-    }else{
-            translation -= 50;
-            if (translation < 0) translation = 0;
-            robot.setArcSpeed(translation,arc_reg);
-            printf("\nEMERGENCY STOP");
-        }
+    }
+//        else{
+//            translation -= 50;
+//            if (translation < 0) translation = 0;
+//            robot.setArcSpeed(translation,arc_reg);
+//            printf("\nEMERGENCY STOP");
+//        }
 
 
 

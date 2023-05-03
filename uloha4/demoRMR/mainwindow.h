@@ -84,8 +84,7 @@ public:
     float last_movex = 0, last_movey = 0;
      float distance_travelled =0;
      float temp_distance =0;
-      bool stuck = false;
-      bool step_one = false;
+
       int Front_back_det = 1;
       int bump_count = 0;
        double calculate_Distance(double xx1, double yy1, double xx2, double yy2);
